@@ -1,0 +1,11 @@
+version: '3.7'
+
+services:
+  rssanything:
+    restart: always
+    container_name: rssanything
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3011:8000'
