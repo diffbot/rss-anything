@@ -3,17 +3,27 @@ import os
 from dotenv import load_dotenv
 from feedgen.feed import FeedGenerator
 from flask import Flask, request, make_response, render_template
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 
 load_dotenv()
 DIFFBOT_TOKEN = os.getenv("DIFFBOT_TOKEN", None)
 
+# Really basic rate limiting to avoid taking down the app by bad actors
+limiter = Limiter(
+    get_remote_address, 
+    app=app, 
+    storage_uri='memory://'
+    )
+
 @app.route('/')
 def index():
     return render_template('home.html')
 
 @app.route('/rss')
+@limiter.limit("1/second", error_message='Rate limit exceeded')
 def rss():
 
     # 1. Extract list from URL

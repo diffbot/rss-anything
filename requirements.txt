@@ -1,5 +1,6 @@
 feedgen
 Flask
-requests
-python-dotenv
+Flask-Limiter
 gunicorn
+python-dotenv
+requests
