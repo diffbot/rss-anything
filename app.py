@@ -42,7 +42,7 @@ def rss():
         if extracted_list.get("error", None):
             raise Exception(extracted_list.get("error", "Page Error"))
         feed_items = extracted_list.get("objects", [])[0].get("items", [])
-        feed_title = extracted_list.get("objects", [])[0].get("title", "Custom Feed")
+        feed_title = extracted_list.get("objects", [])[0].get("title", feed_url)
         feed_description = extracted_list.get("objects", [])[0].get("pageUrl", "")
         feed_url = extracted_list.get("objects", [])[0].get("pageUrl", "")
     except Exception as e:
@@ -51,9 +51,11 @@ def rss():
 
     # 2. Instantiate a Feed
     fg = FeedGenerator()
-    fg.title(feed_title)
+    fg.title(feed_title if feed_title else feed_url)
     fg.description(feed_description)
     fg.link(href=feed_url)
+    fg.managingEditor(managingEditor="jerome@diffbot.com")
+    fg.docs(docs="https://rss.diffbot.com")
 
     # 3. Generate feed item from list items
     for article in feed_items:
