@@ -7,7 +7,7 @@ from feedgen.feed import FeedGenerator
 from flask import Flask, request, make_response, render_template, flash
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus, unquote
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex() # No need to persist this key between resets
@@ -30,7 +30,7 @@ def index():
 def feeds():
     feed_sample = []
     feed_detail = {}
-    rss_url = None
+    actual_rss_url = ""
     try:
         # Attempt to Generate an RSS Feed
         fg, actual_rss_url = generate_feed(request.args.get('url', None))
@@ -41,7 +41,6 @@ def feeds():
             "link": fg.link(),
             "icon": fg.icon()
         }
-
     except Exception as e:
         flash(str(e), 'Error')
     return render_template('home.html', url_encoded=quote_plus(request.args.get('url', '')), feed_detail=feed_detail, actual_rss_url=actual_rss_url)
@@ -82,9 +81,15 @@ def generate_feed(url):
         raise Exception("No URL Provided")
 
     try:
-        extracted_list_response = requests.get(f"https://api.diffbot.com/v3/list?token={DIFFBOT_TOKEN}&url={list_url}")
+        payload = {
+            'token': DIFFBOT_TOKEN,
+            'url': unquote(list_url)
+        }
+        print(payload['url'])
+        extracted_list_response = requests.get(f"https://api.diffbot.com/v3/list", params=payload)
         extracted_list = extracted_list_response.json()
         if extracted_list.get("error", None):
+            print(extracted_list)
             raise Exception(extracted_list.get("error", "Page Error"))
         feed_items = extracted_list.get("objects", [])[0].get("items", [])
         feed_title = extracted_list.get("objects", [])[0].get("title", feed_url)
