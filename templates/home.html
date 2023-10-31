@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>RSS Anything</title>
   <meta name='description' content='Transform any old website with a list of links into an RSS or Atom Feed'>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta property='og:url' content='https://rss.diffbot.com'>
   <meta property='og:title' content='RSS Anything'>
   <meta property='og:description' content='Transform any old website with a list of links into an RSS or Atom Feed'>
@@ -14,9 +15,20 @@
   <meta name='twitter:title' content='RSS Anything'>
   <meta name='twitter:description' content='Transform any old website with a list of links into an RSS or Atom Feed'>
   <meta name='twitter:image' content="{{ url_for('static', filename='og-image.webp') }}">
-
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Prata&text=RSS%20Anything">
+  <link rel="icon" href="{{ url_for('static', filename='rss-anything-icon.svg') }}" type="image/svg+xml">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script defer data-domain="rss.diffbot.com" src="https://st.diffbot.com/js/script.outbound-links.js"></script>
+
+
+  {% if feed_detail %}
+  <link rel="alternate" type="application/rss+xml" title="{{ feed_detail['title'] }}" href="{{ url_for('rss', url=url_encoded) }}" />
+  <link rel="alternate" type="application/atom+xml" title="{{ feed_detail['title'] }}" href="{{ url_for('atom', url=url_encoded) }}" />
+  {% endif %}
+  {% if actual_rss_url %}
+  <link rel="alternate" type="application/rss+xml" title="{{ feed_detail['title'] }}" href="{{ actual_rss_url }}" />
+  {% endif %}
+
   <style>
     body {
       -webkit-font-smoothing: antialiased;
@@ -28,20 +40,75 @@
     }
   </style>
 </head>
-<body class="min-h-screen py-24 px-4">
+<body class="min-h-screen py-12 md:py-24 px-4">
   <section class="text-slate-600 body-font">
     <div class="container mx-auto flex w-auto items-center justify-center flex-col">
       <img class="object-center rounded" width="150" alt="hero" src="{{ url_for('static', filename='rss-anything-icon.svg') }}">
       <div class="text-center lg:w-2/3 w-full mt-10">
-        <h1 class="title-font text-4xl sm:text-5xl mb-4 text-slate-900 font-bold">RSS Anything</h1>
+        <a href="{{ url_for('index') }}">
+          <h1 class="title-font text-4xl sm:text-5xl mb-4 text-slate-900 font-bold">RSS Anything</h1>
+        </a>
         <p class="mb-3 text-xl text-slate-500">Transform any old website with a list of links into an RSS Feed</p>
-        <div class="flex justify-center">
-          <form action="/rss" method="GET" class="mt-6 flex gap-x-4 w-full">
+        <div class="flex justify-center mt-6">
+          <form action="/feeds" method="GET" class="flex gap-x-2 md:gap-x-4 w-full">
               <label for="url" class="sr-only">Enter a URL</label>
-              <input id="url" name="url" type="url" required class="min-w-0 flex-auto rounded-md border border-slate-200 bg-white/3 px-4 py-3 shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:leading-6" placeholder="Enter a URL">
+              <input id="url" name="url" type="url" required class="min-w-0 flex-auto rounded-md border border-slate-200 bg-white/3 px-4 py-3 shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:leading-6" placeholder="Enter a URL" value="{{ request.args.get('url', '') }}" />
               <button type="submit" class="flex-none rounded-md bg-sky-500 px-5 py-3.5 font-semibold text-white shadow-sm hover:bg-sky-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500">Get Feed URL</button>
           </form>
         </div>
+        {% if feed_detail %}
+        <div class="fex justify-center mt-3">
+          <div class="h-full border border-slate-200 border-opacity-50 rounded-lg overflow-hidden text-start">
+            <div class="p-6 bg-white flex justify-between">
+              <div>
+                <h2 class="title-font text-lg font-medium text-gray-900 mb-1">{{ feed_detail['title'] }}</h2>
+                <p class="mb-2">
+                  {% if actual_rss_url %}
+                  📣 <strong>Heads up!</strong> This website exposes its own RSS feed. Give the <a href="{{ actual_rss_url }}" target="_blank" class="text-teal-600 hover:underline">original RSS feed</a> a shot, then try our generated feeds if it's not what you're looking for.
+                  {% else %}
+      `           🌟 Easy peazy! Just add one of the feed URLs below (use RSS if you're unsure) to your reader of choice and you're off to the races.
+                  {% endif %}
+                </p>
+                <div class="mt-3 flex items-center flex-wrap gap-x-3">
+                  {% if actual_rss_url %}
+                  <a href="{{ actual_rss_url }}" target="_blank" class="text-teal-600 items-center font-semibold inline-flex hover:underline">Original RSS Feed
+                    <svg class="w-4 h-4 ml-1" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M5 12h14"></path>
+                      <path d="M12 5l7 7-7 7"></path>
+                    </svg>
+                  </a>
+                  {% endif %}
+                  <a href="{{ url_for('rss', url=url_encoded) }}" target="_blank" class="text-amber-600 items-center font-semibold inline-flex hover:underline">RSS Feed
+                    <svg class="w-4 h-4 ml-1" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M5 12h14"></path>
+                      <path d="M12 5l7 7-7 7"></path>
+                    </svg>
+                  </a>
+                  <a href="{{ url_for('atom', url=url_encoded) }}" target="_blank" class="text-indigo-600 items-center font-semibold inline-flex hover:underline">Atom Feed
+                    <svg class="w-4 h-4 ml-1" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M5 12h14"></path>
+                      <path d="M12 5l7 7-7 7"></path>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flex justify-center mt-3">
+              <ul class="messages w-full text-start">
+              {% for category, message in messages %}
+                <li class="p-4 mb-3 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+                  <span class="font-medium">{{ category }} —</span> {{ message }}
+                </li>
+              {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+        {% endwith %}
       </div>
     </div>
   </section>

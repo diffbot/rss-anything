@@ -1,12 +1,16 @@
 import requests
 import os
+import secrets
+from datetime import datetime
 from dotenv import load_dotenv
 from feedgen.feed import FeedGenerator
-from flask import Flask, request, make_response, render_template
+from flask import Flask, request, make_response, render_template, flash
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from urllib.parse import quote_plus
 
 app = Flask(__name__)
+app.secret_key = secrets.token_hex() # No need to persist this key between resets
 
 load_dotenv()
 DIFFBOT_TOKEN = os.getenv("DIFFBOT_TOKEN", None)
@@ -22,19 +26,60 @@ limiter = Limiter(
 def index():
     return render_template('home.html')
 
+@app.route('/feeds')
+def feeds():
+    feed_sample = []
+    feed_detail = {}
+    rss_url = None
+    try:
+        # Attempt to Generate an RSS Feed
+        fg, actual_rss_url = generate_feed(request.args.get('url', None))
+        # Feed Details
+        feed_detail = {
+            "title": fg.title(),
+            "description": fg.description(),
+            "link": fg.link(),
+            "icon": fg.icon()
+        }
+
+    except Exception as e:
+        flash(str(e), 'Error')
+    return render_template('home.html', url_encoded=quote_plus(request.args.get('url', '')), feed_detail=feed_detail, actual_rss_url=actual_rss_url)
+
 @app.route('/rss')
 @limiter.limit("1/second", error_message='Rate limit exceeded')
 def rss():
+    try:
+        fg, rss_url = generate_feed(request.args.get('url', None))
+        response = make_response(fg.rss_str())
+        response.headers.set('Content-Type', 'application/rss+xml')
+        return response
+    except Exception as e:
+        return make_response(str(e), 400)
 
+@app.route('/atom')
+@limiter.limit("1/second", error_message='Rate limit exceeded')
+def atom():
+    try:
+        fg, rss_url = generate_feed(request.args.get('url', None))
+        response = make_response(fg.atom_str())
+        response.headers.set('Content-Type', 'application/atom+xml')
+        return response
+    except Exception as e:
+        return make_response(str(e), 400)
+
+def generate_feed(url):
     # 1. Extract list from URL
-    list_url = request.args.get('url', None)
+    list_url = url
     feed_items = []
     feed_title = ""
     feed_description = ""
+    feed_icon= ""
     feed_url = ""
+    actual_rss_url = None
 
     if not list_url:
-        return make_response("No URL Provided", 400)
+        raise Exception("No URL Provided")
 
     try:
         extracted_list_response = requests.get(f"https://api.diffbot.com/v3/list?token={DIFFBOT_TOKEN}&url={list_url}")
@@ -44,16 +89,20 @@ def rss():
         feed_items = extracted_list.get("objects", [])[0].get("items", [])
         feed_title = extracted_list.get("objects", [])[0].get("title", feed_url)
         feed_description = extracted_list.get("objects", [])[0].get("pageUrl", "")
+        feed_icon = extracted_list.get("objects", [])[0].get("icon", "")
         feed_url = extracted_list.get("objects", [])[0].get("pageUrl", "")
+        actual_rss_url = extracted_list.get("objects", [])[0].get("rss_url", None)
     except Exception as e:
-        print(e)
-        return make_response(str(e), 400)
+        print("Exception: ", e)
+        raise Exception(str(e))
 
     # 2. Instantiate a Feed
     fg = FeedGenerator()
     fg.title(feed_title if feed_title else feed_url)
+    fg.id(feed_url)
     fg.description(feed_description)
-    fg.link(href=feed_url)
+    fg.icon(feed_icon)
+    fg.link(href=feed_url, rel='alternate')
     fg.managingEditor(managingEditor="jerome@diffbot.com")
     fg.docs(docs="https://rss.diffbot.com")
 
@@ -69,8 +118,4 @@ def rss():
                 fe.author(name=author)
             if published_date := article.get("date", None):
                 fe.pubDate(published_date)
-
-    # 4. Return feed
-    response = make_response(fg.rss_str())
-    response.headers.set('Content-Type', 'application/rss+xml')
-    return response
+    return fg, actual_rss_url
