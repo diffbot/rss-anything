@@ -85,11 +85,9 @@ def generate_feed(url):
             'token': DIFFBOT_TOKEN,
             'url': unquote(list_url)
         }
-        print(payload['url'])
         extracted_list_response = requests.get(f"https://api.diffbot.com/v3/list", params=payload)
         extracted_list = extracted_list_response.json()
         if extracted_list.get("error", None):
-            print(extracted_list)
             raise Exception(extracted_list.get("error", "Page Error"))
         feed_items = extracted_list.get("objects", [])[0].get("items", [])
         feed_title = extracted_list.get("objects", [])[0].get("title", feed_url)
