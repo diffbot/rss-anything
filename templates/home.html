@@ -17,6 +17,7 @@
   <meta name='twitter:image' content="{{ url_for('static', filename='og-image.webp') }}">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Prata&text=RSS%20Anything">
   <link rel="icon" href="{{ url_for('static', filename='rss-anything-icon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer data-domain="rss.diffbot.com" src="https://st.diffbot.com/js/script.outbound-links.js"></script>
 
@@ -28,17 +29,6 @@
   {% if actual_rss_url %}
   <link rel="alternate" type="application/rss+xml" title="{{ feed_detail['title'] }}" href="{{ actual_rss_url }}" />
   {% endif %}
-
-  <style>
-    body {
-      -webkit-font-smoothing: antialiased;
-      background: rgb(255,251,245);
-      background: linear-gradient(180deg, rgba(255,251,245,1) 0%, rgba(255,255,255,1) 100%);
-    }
-    h1.title-font {
-      font-family:"Prata";
-    }
-  </style>
 </head>
 <body class="min-h-screen py-12 md:py-24 px-4">
   <section class="text-slate-600 body-font">
