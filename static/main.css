@@ -847,6 +847,11 @@ video {
   color: rgb(217 119 6 / var(--tw-text-opacity));
 }
 
+.text-gray-500 {
+  --tw-text-opacity: 1;
+  color: rgb(107 114 128 / var(--tw-text-opacity));
+}
+
 .text-gray-900 {
   --tw-text-opacity: 1;
   color: rgb(17 24 39 / var(--tw-text-opacity));
@@ -927,9 +932,31 @@ h1.title-font {
   font-family:"Prata";
 }
 
+.github-triangle {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-top: 90px solid rgb(245,241,235);
+  border-left: 90px solid transparent;
+  right: 0;
+  top: 0;
+  position: absolute;
+}
+
+.github-triangle a {
+  position: absolute;
+  top: -75px;
+  right: 15px;
+}
+
 .hover\:bg-sky-400:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(56 189 248 / var(--tw-bg-opacity));
+}
+
+.hover\:text-gray-700:hover {
+  --tw-text-opacity: 1;
+  color: rgb(55 65 81 / var(--tw-text-opacity));
 }
 
 .hover\:underline:hover {

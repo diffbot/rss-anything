@@ -11,3 +11,20 @@ body {
 h1.title-font {
   font-family:"Prata";
 }
+
+.github-triangle {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-top: 90px solid rgb(245,241,235);; 
+  border-left: 90px solid transparent;
+  right: 0;
+  top: 0;
+  position: absolute;
+}
+
+.github-triangle a {
+  position: absolute;
+  top: -75px;
+  right: 15px;
+}
