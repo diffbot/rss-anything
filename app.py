@@ -43,7 +43,7 @@ def feeds():
         }
     except Exception as e:
         flash(str(e), 'Error')
-    return render_template('home.html', url_encoded=quote_plus(request.args.get('url', '')), feed_detail=feed_detail, actual_rss_url=actual_rss_url)
+    return render_template('home.html', page_url=request.args.get('url', ''), feed_detail=feed_detail, actual_rss_url=actual_rss_url)
 
 @app.route('/rss')
 @limiter.limit("1/second", error_message='Rate limit exceeded')
@@ -105,7 +105,7 @@ def generate_feed(url):
     fg.id(feed_url)
     fg.description(feed_description)
     fg.icon(feed_icon)
-    fg.link(href=f"https://rss.diffbot.com/rss?url={quote_plus(feed_url)}", rel='self')
+    fg.link(href=f"https://rss.diffbot.com/rss?url={feed_url}", rel='self')
     fg.link(href=feed_url, rel='alternate')
     fg.managingEditor(managingEditor="jerome@diffbot.com (Jerome Choo)")
     fg.docs(docs="https://rss.diffbot.com")

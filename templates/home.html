@@ -23,8 +23,8 @@
 
 
   {% if feed_detail %}
-  <link rel="alternate" type="application/rss+xml" title="{{ feed_detail['title'] }}" href="{{ url_for('rss', url=url_encoded) }}" />
-  <link rel="alternate" type="application/atom+xml" title="{{ feed_detail['title'] }}" href="{{ url_for('atom', url=url_encoded) }}" />
+  <link rel="alternate" type="application/rss+xml" title="{{ feed_detail['title'] }}" href="{{ url_for('rss', url=page_url) }}" />
+  <link rel="alternate" type="application/atom+xml" title="{{ feed_detail['title'] }}" href="{{ url_for('atom', url=page_url) }}" />
   {% endif %}
   {% if actual_rss_url %}
   <link rel="alternate" type="application/rss+xml" title="{{ feed_detail['title'] }}" href="{{ actual_rss_url }}" />
@@ -75,13 +75,13 @@
                       </svg>
                     </a>
                     {% endif %}
-                    <a href="{{ url_for('rss', url=url_encoded) }}" target="_blank" class="text-amber-600 items-center font-semibold inline-flex hover:underline">RSS Feed
+                    <a href="{{ url_for('rss', url=page_url) }}" target="_blank" class="text-amber-600 items-center font-semibold inline-flex hover:underline">RSS Feed
                       <svg class="w-4 h-4 ml-1" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 12h14"></path>
                         <path d="M12 5l7 7-7 7"></path>
                       </svg>
                     </a>
-                    <a href="{{ url_for('atom', url=url_encoded) }}" target="_blank" class="text-indigo-600 items-center font-semibold inline-flex hover:underline">Atom Feed
+                    <a href="{{ url_for('atom', url=page_url) }}" target="_blank" class="text-indigo-600 items-center font-semibold inline-flex hover:underline">Atom Feed
                       <svg class="w-4 h-4 ml-1" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 12h14"></path>
                         <path d="M12 5l7 7-7 7"></path>
