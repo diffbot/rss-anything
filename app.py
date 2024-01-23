@@ -105,8 +105,9 @@ def generate_feed(url):
     fg.id(feed_url)
     fg.description(feed_description)
     fg.icon(feed_icon)
+    fg.link(href=f"https://rss.diffbot.com/rss?url={quote_plus(feed_url)}", rel='self')
     fg.link(href=feed_url, rel='alternate')
-    fg.managingEditor(managingEditor="jerome@diffbot.com")
+    fg.managingEditor(managingEditor="jerome@diffbot.com (Jerome Choo)")
     fg.docs(docs="https://rss.diffbot.com")
 
     # 3. Generate feed item from list items
