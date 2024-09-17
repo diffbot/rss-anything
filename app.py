@@ -112,7 +112,7 @@ def generate_feed(url):
     fg.docs(docs="https://rss.diffbot.com")
 
     # 3. Generate feed item from list items
-    for article in feed_items:
+    for article in reversed(feed_items):
         if article.get("title", None) and article.get("link", None):
             fe = fg.add_entry()
             fe.title(article.get("title", ""))
