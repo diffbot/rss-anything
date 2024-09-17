@@ -83,7 +83,8 @@ def generate_feed(url):
     try:
         payload = {
             'token': DIFFBOT_TOKEN,
-            'url': unquote(list_url)
+            'url': unquote(list_url),
+            'paging': "false"
         }
         extracted_list_response = requests.get(f"https://api.diffbot.com/v3/list", params=payload)
         extracted_list = extracted_list_response.json()
@@ -117,6 +118,8 @@ def generate_feed(url):
             fe.title(article.get("title", ""))
             fe.id(article.get("link", ""))
             fe.link(href=article.get("link", ""))
+            if image := article.get("image", None):
+                fe.enclosure(url=image, length=0, type='image/jpeg')
             fe.description(article.get("summary", ""))
             if author := article.get("byline", None) or article.get("author", None):
                 fe.author(name=author)
