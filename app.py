@@ -102,6 +102,7 @@ def generate_feed(url):
 
     # 2. Instantiate a Feed
     fg = FeedGenerator()
+    fg.load_extension('media')
     fg.title(feed_title if feed_title else feed_url)
     fg.id(feed_url)
     fg.description(feed_description)
@@ -120,6 +121,7 @@ def generate_feed(url):
             fe.link(href=article.get("link", ""))
             if image := article.get("image", None):
                 fe.enclosure(url=image, length=0, type='image/jpeg')
+                fe.media.thumbnail(url=image)
             fe.description(article.get("summary", ""))
             if author := article.get("byline", None) or article.get("author", None):
                 fe.author(name=author)
