@@ -1,6 +1,8 @@
 feedgen
 Flask
+Flask-Caching
 Flask-Limiter
 gunicorn
 python-dotenv
+redis
 requests
