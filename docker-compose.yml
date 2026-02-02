@@ -1,6 +1,9 @@
-version: '3.7'
-
 services:
+  redis:
+    image: redis:alpine
+    restart: always
+    container_name: rssanything-redis
+
   rssanything:
     restart: always
     container_name: rssanything
@@ -9,3 +12,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - '3012:8000'
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379

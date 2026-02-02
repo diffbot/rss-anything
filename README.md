@@ -15,3 +15,11 @@ npm install tailwindcss
 npx tailwindcss -i ./static/custom.css -o ./static/main.css
 flask run
 ```
+
+## Build with Docker
+
+Docker build for [https://rss.diffbot.com](https://rss.diffbot.com). Includes a redis cache for aggressive RSS readers.
+
+```sh
+docker compose up --build
+```
