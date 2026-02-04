@@ -1,6 +1,8 @@
 import hashlib
 import os
 import secrets
+import threading
+import time
 
 import requests
 from dotenv import load_dotenv
@@ -44,6 +46,42 @@ limiter = Limiter(
     app=app,
     storage_uri=storage_uri
 )
+
+# Distributed locking to prevent thundering herd on cache misses
+_local_locks = {}
+_local_locks_guard = threading.Lock()
+
+class DistributedLock:
+    """Redis-based distributed lock with fallback to threading lock."""
+    def __init__(self, key, timeout=30):
+        self.key = f"lock:{key}"
+        self.timeout = timeout
+        self.acquired = False
+    
+    def __enter__(self):
+        if CACHE_AVAILABLE:
+            # Use Redis SETNX for distributed locking
+            redis_client = cache.cache._read_client
+            while not redis_client.set(self.key, "1", nx=True, ex=self.timeout):
+                time.sleep(0.05)
+            self.acquired = True
+        else:
+            # Fallback to threading lock for local dev
+            with _local_locks_guard:
+                if self.key not in _local_locks:
+                    _local_locks[self.key] = threading.Lock()
+                self._lock = _local_locks[self.key]
+            self._lock.acquire()
+            self.acquired = True
+        return self
+    
+    def __exit__(self, *args):
+        if self.acquired:
+            if CACHE_AVAILABLE:
+                redis_client = cache.cache._read_client
+                redis_client.delete(self.key)
+            else:
+                self._lock.release()
 
 # =============================================================================
 # Helper Functions
@@ -130,7 +168,7 @@ def build_feed(data):
     return fg, actual_rss_url
 
 def generate_feed(url):
-    """Generate RSS feed with caching to reduce Diffbot API calls."""
+    """Generate RSS feed with caching and locking to reduce unnecessary Diffbot API calls."""
     if not url:
         raise Exception("No URL Provided")
 
@@ -140,8 +178,15 @@ def generate_feed(url):
     if cached_data:
         return build_feed(cached_data)
 
-    feed_data = diffbot_extract(url)
-    cache.set(cache_key, feed_data, timeout=CACHE_TTL)
+    # Use distributed lock to prevent thundering herd on cache miss
+    with DistributedLock(cache_key):
+        # Double-check cache after acquiring lock (another request may have populated it)
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return build_feed(cached_data)
+        
+        feed_data = diffbot_extract(url)
+        cache.set(cache_key, feed_data, timeout=CACHE_TTL)
     
     return build_feed(feed_data)
 
@@ -172,8 +217,7 @@ def feeds():
     return render_template('home.html', page_url=request.args.get('url', ''), feed_detail=feed_detail, actual_rss_url=actual_rss_url)
 
 @app.route('/rss')
-@limiter.limit("1/second", error_message='Rate limit exceeded')
-@limiter.limit("10/minute", key_func=get_url_for_rate_limit, error_message='Rate limit exceeded')
+@limiter.limit("60/minute", error_message='Rate limit exceeded')
 def rss():
     try:
         fg, rss_url = generate_feed(request.args.get('url', None))
@@ -186,8 +230,7 @@ def rss():
         return make_response(str(e), 400)
 
 @app.route('/atom')
-@limiter.limit("1/second", error_message='Rate limit exceeded')
-@limiter.limit("10/minute", key_func=get_url_for_rate_limit, error_message='Rate limit exceeded')
+@limiter.limit("60/minute", error_message='Rate limit exceeded')
 def atom():
     try:
         fg, rss_url = generate_feed(request.args.get('url', None))
